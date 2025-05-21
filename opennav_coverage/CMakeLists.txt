@@ -16,10 +16,14 @@ find_package(builtin_interfaces REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(opennav_coverage_msgs REQUIRED)
 find_package(Fields2Cover REQUIRED)
+find_package(GDAL REQUIRED)
+find_package(tinyxml2_vendor REQUIRED)
+# find_package(tinyxml2 REQUIRED)
 
 # potentially replace with nav2_common, nav2_package()
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wdeprecated -fPIC -Wshadow -Wnull-dereference)
+set(tinyxml2_DIR /opt/ros/humble/share/tinyxml2_vendor/cmake)
 
 include_directories(
   include
@@ -42,6 +46,8 @@ set(dependencies
   builtin_interfaces
   tf2_ros
   opennav_coverage_msgs
+  GDAL
+  # tinyxml2
 )
 
 add_library(${library_name} SHARED
@@ -57,7 +63,16 @@ ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
-target_link_libraries(${library_name} Fields2Cover)
+target_link_libraries(${library_name}
+  Fields2Cover
+  ${GDAL_LIBRARIES}
+  # tinyxml2::tinyxml2
+)
+
+# And for include directories
+target_include_directories(${library_name} PRIVATE
+  ${GDAL_INCLUDE_DIRS}  # Add this
+)
 
 add_executable(${executable_name}
   src/main.cpp

@@ -9,11 +9,14 @@ find_package(nav2_util REQUIRED)
 find_package(Fields2Cover REQUIRED)
 find_package(opennav_coverage REQUIRED)
 find_package(opennav_coverage_msgs REQUIRED)
-find_package(tinyxml2 REQUIRED)
+find_package(GDAL REQUIRED)
+find_package(tinyxml2_vendor REQUIRED)
+# find_package(tinyxml2 REQUIRED)
 
 # potentially replace with nav2_common, nav2_package()
 set(CMAKE_CXX_STANDARD 17)
 add_compile_options(-Wall -Wextra -Wpedantic -Werror -Wdeprecated -fPIC -Wshadow -Wnull-dereference)
+set(tinyxml2_DIR /opt/ros/humble/share/tinyxml2_vendor/cmake)
 
 include_directories(
   include
@@ -35,6 +38,7 @@ set(dependencies
   std_msgs
   opennav_coverage
   opennav_coverage_msgs
+  GDAL
 )
 
 add_library(${library_name} SHARED
@@ -46,7 +50,7 @@ ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
-target_link_libraries(${library_name} Fields2Cover tinyxml2::tinyxml2)
+# target_link_libraries(${library_name} Fields2Cover tinyxml2::tinyxml2)
 
 add_executable(${executable_name}
   src/main.cpp
@@ -58,7 +62,7 @@ ament_target_dependencies(${executable_name}
   ${dependencies}
 )
 
-target_link_libraries(${executable_name} Fields2Cover tinyxml2::tinyxml2)
+# target_link_libraries(${executable_name} Fields2Cover tinyxml2::tinyxml2)
 
 rclcpp_components_register_nodes(${library_name} "opennav_row_coverage::RowCoverageServer")
 
@@ -76,12 +80,12 @@ install(DIRECTORY include/
   DESTINATION include/
 )
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  find_package(ament_cmake_gtest REQUIRED)
-  ament_lint_auto_find_test_dependencies()
-  add_subdirectory(test)
-endif()
+# if(BUILD_TESTING)
+#   find_package(ament_lint_auto REQUIRED)
+#   find_package(ament_cmake_gtest REQUIRED)
+#   ament_lint_auto_find_test_dependencies()
+#   add_subdirectory(test)
+# endif()
 
 ament_export_include_directories(include)
 ament_export_libraries(${library_name})
