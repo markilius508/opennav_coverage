@@ -30,6 +30,7 @@ setup(
         'console_scripts': [
                 'demo_coverage = opennav_coverage_demo.demo_coverage:main',
                 'demo_row_coverage = opennav_coverage_demo.demo_row_coverage:main',
+                'house_coverage = opennav_coverage_demo.house_coverage:main',
         ],
     },
 )
