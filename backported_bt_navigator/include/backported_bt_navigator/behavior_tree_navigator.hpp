@@ -287,10 +287,20 @@ protected:
    */
   bool onGoalReceived(typename ActionT::Goal::ConstSharedPtr goal)
   {
+    // Special case for navigate_to_pose when called by follow_waypoints or else the error message
+    // [waypoint_follower]: Failed to process waypoint 178, moving to next.
+    // or Special case for navigate_through_poses
+    // coverage_navigator.cpp shall not be loaded as navigator but shall be used as "acion_node" (action_cleint like FollowPath.action)
+    if ((getName() == "navigate_through_poses" || getName() == "navigate_to_pose") && plugin_muxer_->isNavigating()) {
+      // Allow navigate_to_pose to proceed even if another navigator is active
+      bool goal_accepted = goalReceived(goal);
+      return goal_accepted;
+    }
+    
     if (plugin_muxer_->isNavigating()) {
       RCLCPP_ERROR(
         logger_,
-        "Requested navigation from %s while another navigator is processing,"
+        "Opennav: Requested navigation from %s while another navigator is processing,"
         " rejecting request.", getName().c_str());
       return false;
     }

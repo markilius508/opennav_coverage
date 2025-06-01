@@ -13,6 +13,8 @@ find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(opennav_coverage_msgs REQUIRED)
 find_package(behaviortree_cpp_v3 REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
 
 # potentially replace with nav2_common, nav2_package()
 set(CMAKE_CXX_STANDARD 17)
@@ -34,12 +36,18 @@ set(dependencies
   geometry_msgs
   opennav_coverage_msgs
   behaviortree_cpp_v3
+  tf2
+  tf2_geometry_msgs
 )
 
 add_library(opennav_compute_complete_coverage_action_bt_node SHARED src/compute_complete_coverage_path.cpp)
 list(APPEND plugin_libs opennav_compute_complete_coverage_action_bt_node)
 add_library(opennav_cancel_complete_coverage_action_bt_node SHARED src/cancel_complete_coverage_path.cpp)
 list(APPEND plugin_libs opennav_cancel_complete_coverage_action_bt_node)
+
+# New plugin: ConvertPathToWaypoints
+add_library(opennav_convert_path_to_waypoints_action_bt_node SHARED src/convert_path_to_waypoints.cpp)
+list(APPEND plugin_libs opennav_convert_path_to_waypoints_action_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dependencies})

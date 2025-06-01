@@ -67,7 +67,7 @@ CoverageNavigator::getDefaultBTFilepath(
     node->declare_parameter<std::string>(
       "default_coverage_bt_xml",
       pkg_share_dir +
-      "/behavior_trees/navigate_w_basic_complete_coverage.xml");
+      "/behavior_trees/navigate_full_complete_coverage.xml");
   }
 
   node->get_parameter("default_coverage_bt_xml", default_bt_xml_filename);
