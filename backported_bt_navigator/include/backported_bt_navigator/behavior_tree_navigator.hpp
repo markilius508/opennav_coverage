@@ -101,8 +101,9 @@ public:
     }
   }
 
-protected:
+// protected:
   std::string current_navigator_;
+protected:
   std::mutex mutex_;
 };
 
@@ -287,27 +288,30 @@ protected:
    */
   bool onGoalReceived(typename ActionT::Goal::ConstSharedPtr goal)
   {
-    // Special case for navigate_to_pose when called by follow_waypoints or else the error message
-    // [waypoint_follower]: Failed to process waypoint 178, moving to next.
-    // or Special case for navigate_through_poses
-    // coverage_navigator.cpp shall not be loaded as navigator but shall be used as "acion_node" (action_cleint like FollowPath.action)
-    if ((getName() == "navigate_through_poses" || getName() == "navigate_to_pose" || getName() == "navigate_through_gps_poses") && plugin_muxer_->isNavigating()) {
-      // Allow navigate_to_pose to proceed even if another navigator is active
-      bool goal_accepted = goalReceived(goal);
-      return goal_accepted;
-    }
-    
     if (plugin_muxer_->isNavigating()) {
-      RCLCPP_ERROR(
-        logger_,
-        "Opennav: Requested navigation from %s while another navigator is processing,"
-        " rejecting request.", getName().c_str());
-      return false;
+      if (!(plugin_muxer_->current_navigator_ == "navigate_complete_coverage") ||
+      !(getName() == "navigate_through_poses" || getName() == "navigate_to_pose" || getName() == "navigate_through_gps_poses"))
+      {
+        RCLCPP_ERROR(
+          logger_,
+          "Opennav: Requested navigation from %s while another navigator is processing,"
+          " rejecting request.", getName().c_str());
+        return false;
+      } else {
+        RCLCPP_INFO(
+          rclcpp::get_logger("BehaviorTreeNavigator"),
+          "%s is finished and %s is started",
+          plugin_muxer_->current_navigator_.c_str(),
+          getName().c_str());
+      }
     }
 
     bool goal_accepted = goalReceived(goal);
 
     if (goal_accepted) {
+      if (plugin_muxer_->current_navigator_ == "navigate_complete_coverage") {
+        plugin_muxer_->stopNavigating(plugin_muxer_->current_navigator_);
+      }
       plugin_muxer_->startNavigating(getName());
     }
 
