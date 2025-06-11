@@ -50,6 +50,8 @@ add_library(opennav_convert_path_to_waypoints_action_bt_node SHARED src/convert_
 list(APPEND plugin_libs opennav_convert_path_to_waypoints_action_bt_node)
 add_library(opennav_gps_compute_complete_coverage_action_bt_node SHARED src/gps_compute_complete_coverage_path.cpp)
 list(APPEND plugin_libs opennav_gps_compute_complete_coverage_action_bt_node)
+add_library(opennav_convert_path_to_gps_waypoints_action_bt_node SHARED src/convert_path_to_gps_waypoints.cpp)
+list(APPEND plugin_libs opennav_convert_path_to_gps_waypoints_action_bt_node)
 
 foreach(bt_plugin ${plugin_libs})
   ament_target_dependencies(${bt_plugin} ${dependencies})

@@ -7,12 +7,20 @@
 	    <description>Navigate to Pose Navigator</description>
 	  </class>
 	</library>
-  <library path="nav2_navigate_through_poses">
+  	<library path="nav2_navigate_through_poses">
 	  <class
 	  	name="backported_bt_navigator/NavigateThroughPosesNavigator"
 	  	type="backported_bt_navigator::NavigateThroughPosesNavigator"
 	  	base_class_type="backported_bt_navigator::NavigatorBase">
 	    <description>Navigate through Poses Navigator</description>
+	  </class>
+	</library>
+	<library path="nav2_navigate_through_gps_poses">
+	  <class
+	  	name="backported_bt_navigator/NavigateThroughGPSPosesNavigator"
+	  	type="backported_bt_navigator::NavigateThroughGPSPosesNavigator"
+	  	base_class_type="backported_bt_navigator::NavigatorBase">
+	    <description>Navigate through GPS-Poses Navigator</description>
 	  </class>
 	</library>
 </class_libraries>

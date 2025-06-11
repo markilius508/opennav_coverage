@@ -26,41 +26,20 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 def generate_launch_description():
     nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     coverage_demo_dir = get_package_share_directory('opennav_coverage_demo')
+    gps_wpf_dir = get_package_share_directory("nav2_gps_waypoint_follower_demo")
 
     param_file_path = os.path.join(coverage_demo_dir, 'gps_full_params.yaml')
-    amcl_config_path = os.path.join(coverage_demo_dir, 'amcl.yaml')
-
-    map_name = LaunchConfiguration("map_name")
-    use_sim_time = LaunchConfiguration("use_sim_time")
-    amcl_config = LaunchConfiguration("amcl_config")
-
-    map_name_arg = DeclareLaunchArgument(
-        "map_name"
-    )
-
-    use_sim_time_arg = DeclareLaunchArgument(
-        "use_sim_time",
-        default_value = "true"
-    )
-
-    amcl_config_arg = DeclareLaunchArgument(
-        "amcl_config",
-        default_value = amcl_config_path,
-        description = "Full path to amcl yaml file to load"
-    )
 
     # start the simulation
     gazebo_launch = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([coverage_demo_dir, '/turtlebot3_house.launch.py']))
-    
-    # world->odom transform, no localization. For visualization & controller transform
-    amcl_launch = IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([coverage_demo_dir, '/amcl.launch.py']),
-            launch_arguments={'map_name': map_name,
-                              'use_sim_time': use_sim_time,
-                              'amcl_config': amcl_config,
-                              'container_name': 'nav2_container'}.items()
-            )
+        PythonLaunchDescriptionSource(
+            os.path.join(os.path.join(gps_wpf_dir, 'launch'), 'gazebo_gps_world.launch.py'))
+    )
+
+    robot_localization_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(os.path.join(gps_wpf_dir, 'launch'), 'dual_ekf_navsat.launch.py'))
+    )
 
     # start the visualization
     rviz_config = os.path.join(coverage_demo_dir, 'opennav_coverage_demo.rviz')
@@ -84,11 +63,8 @@ def generate_launch_description():
         output='screen')
 
     ld = LaunchDescription()
-    ld.add_action(map_name_arg)
-    ld.add_action(use_sim_time_arg)
-    ld.add_action(amcl_config_arg)
     ld.add_action(gazebo_launch)
-    ld.add_action(amcl_launch)
+    ld.add_action(robot_localization_cmd)
     ld.add_action(rviz_cmd)
     ld.add_action(bringup_cmd)
     ld.add_action(demo_cmd)

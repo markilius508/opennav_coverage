@@ -291,7 +291,7 @@ protected:
     // [waypoint_follower]: Failed to process waypoint 178, moving to next.
     // or Special case for navigate_through_poses
     // coverage_navigator.cpp shall not be loaded as navigator but shall be used as "acion_node" (action_cleint like FollowPath.action)
-    if ((getName() == "navigate_through_poses" || getName() == "navigate_to_pose") && plugin_muxer_->isNavigating()) {
+    if ((getName() == "navigate_through_poses" || getName() == "navigate_to_pose" || getName() == "navigate_through_gps_poses") && plugin_muxer_->isNavigating()) {
       // Allow navigate_to_pose to proceed even if another navigator is active
       bool goal_accepted = goalReceived(goal);
       return goal_accepted;

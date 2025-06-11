@@ -88,6 +88,7 @@ BtNavigator::BtNavigator(rclcpp::NodeOptions options)
     "nav2_back_up_cancel_bt_node",
     "nav2_drive_on_heading_cancel_bt_node",
     "nav2_is_battery_charging_condition_bt_node"
+    "nav2_navigate_through_gps_poses_action_bt_node"
   };
 
   declare_parameter_if_not_declared(

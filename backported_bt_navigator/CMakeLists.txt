@@ -18,6 +18,8 @@ find_package(nav2_util REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(robot_localization REQUIRED)
+find_package(geographic_msgs REQUIRED)
 
 nav2_package()
 
@@ -49,6 +51,8 @@ set(dependencies
   nav2_core
   tf2_ros
   pluginlib
+  geographic_msgs
+  robot_localization
 )
 
 add_library(${library_name} SHARED
@@ -73,10 +77,14 @@ add_library(nav2_navigate_through_poses SHARED src/navigators/navigate_through_p
 ament_target_dependencies(nav2_navigate_through_poses ${dependencies})
 target_compile_definitions(nav2_navigate_through_poses PRIVATE BT_PLUGIN_EXPORT)
 
+add_library(nav2_navigate_through_gps_poses SHARED src/navigators/navigate_through_gps_poses.cpp)
+ament_target_dependencies(nav2_navigate_through_gps_poses ${dependencies})
+target_compile_definitions(nav2_navigate_through_gps_poses PRIVATE BT_PLUGIN_EXPORT)
+
 pluginlib_export_plugin_description_file(backported_bt_navigator navigator_plugins.xml)
 rclcpp_components_register_nodes(${library_name} "backported_bt_navigator::BtNavigator")
 
-install(TARGETS ${library_name} nav2_navigate_to_pose_navigator nav2_navigate_through_poses
+install(TARGETS ${library_name} nav2_navigate_to_pose_navigator nav2_navigate_through_poses nav2_navigate_through_gps_poses
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
@@ -96,6 +104,6 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_include_directories(include)
-ament_export_libraries(${library_name} nav2_navigate_to_pose_navigator nav2_navigate_through_poses)
+ament_export_libraries(${library_name} nav2_navigate_to_pose_navigator nav2_navigate_through_poses nav2_navigate_through_gps_poses)
 ament_export_dependencies(${dependencies})
 ament_package()
