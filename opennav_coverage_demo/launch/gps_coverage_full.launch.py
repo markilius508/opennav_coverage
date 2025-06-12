@@ -28,7 +28,7 @@ def generate_launch_description():
     coverage_demo_dir = get_package_share_directory('opennav_coverage_demo')
     gps_wpf_dir = get_package_share_directory("nav2_gps_waypoint_follower_demo")
 
-    param_file_path = os.path.join(coverage_demo_dir, 'gps_full_params.yaml')
+    param_file_path = os.path.join(coverage_demo_dir, 'full_gps_params.yaml')
 
     # start the simulation
     gazebo_launch = IncludeLaunchDescription(

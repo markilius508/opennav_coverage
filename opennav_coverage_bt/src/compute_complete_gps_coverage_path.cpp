@@ -16,12 +16,12 @@
 #include <string>
 #include <fstream>
 
-#include "opennav_coverage_bt/gps_compute_complete_coverage_path.hpp"
+#include "opennav_coverage_bt/compute_complete_gps_coverage_path.hpp"
 
 namespace opennav_coverage_bt
 {
 
-GpsComputeCoveragePathAction::GpsComputeCoveragePathAction(
+ComputeGPSCoveragePathAction::ComputeGPSCoveragePathAction(
   const std::string & xml_tag_name,
   const std::string & action_name,
   const BT::NodeConfiguration & conf)
@@ -29,7 +29,7 @@ GpsComputeCoveragePathAction::GpsComputeCoveragePathAction(
 {
 }
 
-void GpsComputeCoveragePathAction::on_tick()
+void ComputeGPSCoveragePathAction::on_tick()
 {
   // Get core inputs about what to perform
   getInput("generate_headland", goal_.generate_headland);
@@ -59,10 +59,10 @@ void GpsComputeCoveragePathAction::on_tick()
   }
 }
 
-BT::NodeStatus GpsComputeCoveragePathAction::on_success()
+BT::NodeStatus ComputeGPSCoveragePathAction::on_success()
 {
   RCLCPP_INFO(
-    rclcpp::get_logger("GpsComputeCoveragePath"), "Planning time: %.2f seconds", 
+    rclcpp::get_logger("ComputeGPSCoveragePath"), "Planning time: %.2f seconds", 
     result_.result->planning_time.sec + result_.result->planning_time.nanosec/1e9);
 
   // Create filtered path
@@ -115,7 +115,7 @@ BT::NodeStatus GpsComputeCoveragePathAction::on_success()
   }
 
   RCLCPP_INFO(
-    rclcpp::get_logger("GpsComputeCoveragePath"), 
+    rclcpp::get_logger("ComputeGPSCoveragePath"), 
     "Processed path: %zu poses after filtering and interpolation (original: %zu)", 
     interpolated_path.poses.size(), 
     result_.result->nav_path.poses.size()
@@ -130,11 +130,11 @@ BT::NodeStatus GpsComputeCoveragePathAction::on_success()
 
   // Blackboard debug
   auto blackboard = config().blackboard;
-  RCLCPP_INFO(rclcpp::get_logger("GpsComputeCoveragePath"), "Blackboard content:");
+  RCLCPP_INFO(rclcpp::get_logger("ComputeGPSCoveragePath"), "Blackboard content:");
   
   nav_msgs::msg::Path path;
   if (blackboard->get<nav_msgs::msg::Path>("path", path)) {
-    RCLCPP_INFO(rclcpp::get_logger("GpsComputeCoveragePath"), "Path on blackboard has %zu poses", path.poses.size());
+    RCLCPP_INFO(rclcpp::get_logger("ComputeGPSCoveragePath"), "Path on blackboard has %zu poses", path.poses.size());
   }
 
   if (true) {
@@ -156,13 +156,13 @@ BT::NodeStatus GpsComputeCoveragePathAction::on_success()
         logFile << "]\n";
         logFile.close();
     } else {
-        RCLCPP_ERROR(rclcpp::get_logger("GpsComputeCoveragePath"), "Unable to open file for logging!");
+        RCLCPP_ERROR(rclcpp::get_logger("ComputeGPSCoveragePath"), "Unable to open file for logging!");
     }
 }
   return BT::NodeStatus::SUCCESS;
 }
 
-BT::NodeStatus GpsComputeCoveragePathAction::on_aborted()
+BT::NodeStatus ComputeGPSCoveragePathAction::on_aborted()
 {
   nav_msgs::msg::Path empty_path;
   opennav_coverage_msgs::msg::PathComponents cov_path;
@@ -172,7 +172,7 @@ BT::NodeStatus GpsComputeCoveragePathAction::on_aborted()
   return BT::NodeStatus::FAILURE;
 }
 
-BT::NodeStatus GpsComputeCoveragePathAction::on_cancelled()
+BT::NodeStatus ComputeGPSCoveragePathAction::on_cancelled()
 {
   nav_msgs::msg::Path empty_path;
   opennav_coverage_msgs::msg::PathComponents cov_path;
@@ -182,7 +182,7 @@ BT::NodeStatus GpsComputeCoveragePathAction::on_cancelled()
   return BT::NodeStatus::SUCCESS;
 }
 
-void GpsComputeCoveragePathAction::halt()
+void ComputeGPSCoveragePathAction::halt()
 {
   nav_msgs::msg::Path empty_path;
   opennav_coverage_msgs::msg::PathComponents cov_path;
@@ -199,10 +199,10 @@ BT_REGISTER_NODES(factory)
   BT::NodeBuilder builder =
     [](const std::string & name, const BT::NodeConfiguration & config)
     {
-      return std::make_unique<opennav_coverage_bt::GpsComputeCoveragePathAction>(
+      return std::make_unique<opennav_coverage_bt::ComputeGPSCoveragePathAction>(
         name, "compute_coverage_path", config);
     };
 
-  factory.registerBuilder<opennav_coverage_bt::GpsComputeCoveragePathAction>(
-    "GpsComputeCoveragePath", builder);
+  factory.registerBuilder<opennav_coverage_bt::ComputeGPSCoveragePathAction>(
+    "ComputeGPSCoveragePath", builder);
 }

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef OPENNAV_COVERAGE_BT__GPS_COMPUTE_COMPLETE_COVERAGE_PATH_HPP_
-#define OPENNAV_COVERAGE_BT__GPS_COMPUTE_COMPLETE_COVERAGE_PATH_HPP_
+#ifndef OPENNAV_COVERAGE_BT__COMPUTE_COMPLETE_GPS_COVERAGE_PATH_HPP_
+#define OPENNAV_COVERAGE_BT__COMPUTE_COMPLETE_GPS_COVERAGE_PATH_HPP_
 
 #include <string>
 #include <memory>
@@ -30,7 +30,7 @@ namespace opennav_coverage_bt
 /**
  * @brief nav2_behavior_tree::BtActionNode class that wraps nav2_msgs::action::GpsComputeCoveragePath
  */
-class GpsComputeCoveragePathAction
+class ComputeGPSCoveragePathAction
   : public nav2_behavior_tree::BtActionNode<
     opennav_coverage_msgs::action::ComputeCoveragePath>
 {
@@ -39,12 +39,12 @@ class GpsComputeCoveragePathAction
 
 public:
   /**
-   * @brief A constructor for opennav_coverage_bt::GpsComputeCoveragePathAction
+   * @brief A constructor for opennav_coverage_bt::ComputeGPSCoveragePathAction
    * @param xml_tag_name Name for the XML tag for this node
    * @param action_name Action name this node creates a client for
    * @param conf BT node configuration
    */
-  GpsComputeCoveragePathAction(
+  ComputeGPSCoveragePathAction(
     const std::string & xml_tag_name,
     const std::string & action_name,
     const BT::NodeConfiguration & conf);
@@ -106,4 +106,4 @@ public:
 
 }  // namespace opennav_coverage_bt
 
-#endif  // OPENNAV_COVERAGE_BT__GPS_COMPUTE_COMPLETE_COVERAGE_PATH_HPP_
+#endif  // OPENNAV_COVERAGE_BT__COMPUTE_COMPLETE_GPS_COVERAGE_PATH_HPP_
