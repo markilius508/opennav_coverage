@@ -30,8 +30,9 @@ bt_navigator:
     odom_topic: /odom
     bt_loop_duration: 10
     default_server_timeout: 20
-    default_coverage_bt_xml: "opennav_coverage_bt/behavior_trees/navigate_full_gps_complete_coverage.xml"
     # default_coverage_bt_xml: "opennav_coverage_bt/behavior_trees/navigate_w_basic_complete_coverage.xml"
+    default_coverage_bt_xml: "opennav_coverage_bt/behavior_trees/navigate_full_gps_complete_coverage.xml"
+    default_nav_through_poses_bt_xml: $(find-pkg-share nav2_bt_navigator)/behavior_trees/navigate_through_poses_w_replanning_and_recovery_coverage.xml
     navigators: ['navigate_complete_coverage', 'navigate_to_pose', 'navigate_through_poses', 'navigate_through_gps_poses']
 
     navigate_complete_coverage:
@@ -95,12 +96,12 @@ controller_server:
     # RPP parameters
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      desired_linear_vel: 0.5
+      desired_linear_vel: 0.4
       lookahead_dist: 0.6
       min_lookahead_dist: 0.3
       max_lookahead_dist: 0.9
       lookahead_time: 1.5
-      rotate_to_heading_angular_vel: 1.8
+      rotate_to_heading_angular_vel: 0.8
       use_velocity_scaled_lookahead_dist: true
       min_approach_linear_velocity: 0.05
       approach_velocity_scaling_dist: 0.6
@@ -112,11 +113,11 @@ controller_server:
       use_cost_regulated_linear_velocity_scaling: false
       regulated_linear_scaling_min_radius: 0.9
       regulated_linear_scaling_min_speed: 0.25
-      use_rotate_to_heading: false  # allows to follow coverage path better in sharper turns
+      use_rotate_to_heading: true  # allows to follow coverage path better in sharper turns
       allow_reversing: false
       rotate_to_heading_min_angle: 0.785
       max_angular_accel: 3.2
-      max_robot_pose_search_dist: 10.0
+      max_robot_pose_search_dist: 1.0
       use_interpolation: true
     # DWB parameters
     # FollowPath:
