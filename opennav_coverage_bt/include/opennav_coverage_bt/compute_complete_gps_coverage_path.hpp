@@ -100,8 +100,22 @@ public:
           "nav_path", "The coverage plan as a nav_msgs/Path to track directly"),
         BT::OutputPort<ActionResult::_coverage_path_type>(
           "coverage_path", "The coverage plan as an ordered set of swaths and route connections"),
+        BT::InputPort<double>("max_distance", 3.0, "Maximum distance between poses, if exceeded then interpolate between them"),
       });
   }
+private:
+  /**
+   * @brief Interpolates a GPS path to ensure maximum distance between consecutive points
+   * Uses appropriate interpolation methods for GPS coordinates in EPSG:4326
+   * @param input_path The original path with GPS coordinates
+   * @param max_distance_meters Maximum allowed distance between consecutive points in meters
+   * @return Interpolated path with additional points inserted as needed
+   */
+  nav_msgs::msg::Path interpolateGPSPath(
+    const nav_msgs::msg::Path& input_path, 
+    double max_distance_meters = 20.0);
+  
+  double max_distance_;
 };
 
 }  // namespace opennav_coverage_bt
