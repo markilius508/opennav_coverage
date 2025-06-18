@@ -28,10 +28,10 @@ namespace opennav_coverage_bt
 {
 
 /**
- * @brief nav2_behavior_tree::BtActionNode class that wraps nav2_msgs::action::ComputeCoveragePath
+ * @brief A BT::ActionNodeBase to compute coverage paths for Cartesian coordinates
+ * Includes Cartesian-aware interpolation for accurate path generation
  */
-class ComputeCoveragePathAction
-  : public nav2_behavior_tree::BtActionNode<
+class ComputeCoveragePathAction : public nav2_behavior_tree::BtActionNode<
     opennav_coverage_msgs::action::ComputeCoveragePath>
 {
   using Action = opennav_coverage_msgs::action::ComputeCoveragePath;
@@ -39,10 +39,10 @@ class ComputeCoveragePathAction
 
 public:
   /**
-   * @brief A constructor for opennav_coverage_bt::ComputeCoveragePathAction
+   * @brief A ComputeCoveragePathAction constructor
    * @param xml_tag_name Name for the XML tag for this node
    * @param action_name Action name this node creates a client for
-   * @param conf BT node configuration
+   * @param conf BT node configure
    */
   ComputeCoveragePathAction(
     const std::string & xml_tag_name,
@@ -51,26 +51,31 @@ public:
 
   /**
    * @brief Function to perform some user-defined operation on tick
+   * Could do dynamic checks, etc.
    */
   void on_tick() override;
 
   /**
-   * @brief Function to perform some user-defined operation upon successful completion of the action
+   * @brief Function to perform some user-defined operation upon successful
+   * completion of the action. Could put a message, set a blackboard variable, etc.
    */
   BT::NodeStatus on_success() override;
 
   /**
-   * @brief Function to perform some user-defined operation upon abortion of the action
+   * @brief Function to perform some user-defined operation when the action is aborted.
+   * Could put a message, set a blackboard variable, etc.
    */
   BT::NodeStatus on_aborted() override;
 
   /**
-   * @brief Function to perform some user-defined operation upon cancellation of the action
+   * @brief Function to perform some user-defined operation when the action is cancelled.
+   * Could put a message, set a blackboard variable, etc.
    */
   BT::NodeStatus on_cancelled() override;
 
   /**
-   * \brief Override required by the a BT action. Cancel the action and set the path output
+   * @brief Function to perform some user-defined operation when the action node is halted.
+   * Could put a message, set a blackboard variable, etc.
    */
   void halt() override;
 
@@ -100,8 +105,23 @@ public:
           "nav_path", "The coverage plan as a nav_msgs/Path to track directly"),
         BT::OutputPort<ActionResult::_coverage_path_type>(
           "coverage_path", "The coverage plan as an ordered set of swaths and route connections"),
+        BT::InputPort<double>("max_distance", 0.20, "Maximum distance between poses in coordinate units, if exceeded then interpolate between them"),
       });
   }
+
+private:
+  /**
+   * @brief Interpolates a Cartesian path to ensure maximum distance between consecutive points
+   * Uses linear interpolation for Cartesian coordinates
+   * @param input_path The original path with Cartesian coordinates
+   * @param max_distance_meters Maximum allowed distance between consecutive points in coordinate units
+   * @return Interpolated path with additional points inserted as needed
+   */
+  nav_msgs::msg::Path interpolateCartesianPath(
+    const nav_msgs::msg::Path& input_path, 
+    double max_distance_meters = 0.20);
+  
+  double max_distance_;  // Maximum interpolation distance in coordinate units
 };
 
 }  // namespace opennav_coverage_bt

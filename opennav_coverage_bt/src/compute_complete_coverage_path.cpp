@@ -15,17 +15,43 @@
 #include <memory>
 #include <string>
 #include <fstream>
+#include <cmath>
+#include <iomanip>
+#include <chrono>
 
 #include "opennav_coverage_bt/compute_complete_coverage_path.hpp"
 
 namespace opennav_coverage_bt
 {
 
+// Cartesian Utility Functions
+namespace cartesian_utils
+{
+
+// Calculate Euclidean distance between two Cartesian points
+// Returns distance in meters (or coordinate units)
+double calculateCartesianDistance(double x1, double y1, double x2, double y2) {
+  const double dx = x2 - x1;
+  const double dy = y2 - y1;
+  return std::sqrt(dx * dx + dy * dy);
+}
+
+// Linear interpolation between two Cartesian points
+// t should be between 0.0 and 1.0
+void interpolateCartesian(double x1, double y1, double x2, double y2, 
+                         double t, double& result_x, double& result_y) {
+  result_x = x1 + t * (x2 - x1);
+  result_y = y1 + t * (y2 - y1);
+}
+
+} // namespace cartesian_utils
+
 ComputeCoveragePathAction::ComputeCoveragePathAction(
   const std::string & xml_tag_name,
   const std::string & action_name,
   const BT::NodeConfiguration & conf)
-: BtActionNode<Action>(xml_tag_name, action_name, conf)
+: BtActionNode<Action>(xml_tag_name, action_name, conf),
+  max_distance_(0.20)
 {
 }
 
@@ -44,7 +70,7 @@ void ComputeCoveragePathAction::on_tick()
   } else {
     getInput("polygons_frame_id", goal_.frame_id);
 
-    // Convert from vector of Polygons to coverage sp. message
+    // Convert from vector of Polygons to coverage specific message
     std::vector<geometry_msgs::msg::Polygon> polys;
     getInput("polygons", polys);
     goal_.polygons.resize(polys.size());
@@ -59,72 +85,102 @@ void ComputeCoveragePathAction::on_tick()
   }
 }
 
+nav_msgs::msg::Path ComputeCoveragePathAction::interpolateCartesianPath(
+  const nav_msgs::msg::Path& input_path, double max_distance_meters)
+{
+  nav_msgs::msg::Path interpolated_path;
+  interpolated_path.header = input_path.header;
+  
+  if (input_path.poses.empty()) {
+    return interpolated_path;
+  }
+  
+  interpolated_path.poses.push_back(input_path.poses[0]);
+  
+  for (size_t i = 1; i < input_path.poses.size(); ++i) {
+    const auto& prev_pose = input_path.poses[i-1];
+    const auto& curr_pose = input_path.poses[i];
+    
+    // Extract Cartesian coordinates
+    double prev_x = prev_pose.pose.position.x;
+    double prev_y = prev_pose.pose.position.y;
+    double curr_x = curr_pose.pose.position.x;
+    double curr_y = curr_pose.pose.position.y;
+    
+    // Calculate distance in coordinate units
+    double distance = cartesian_utils::calculateCartesianDistance(prev_x, prev_y, curr_x, curr_y);
+    
+    if (distance > max_distance_meters) {
+      // Calculate number of intermediate points needed
+      const size_t num_intermediates = static_cast<size_t>(std::ceil(distance / max_distance_meters));
+      const double step = 1.0 / (num_intermediates + 1);
+      
+      // Create intermediate points using linear interpolation
+      for (size_t j = 1; j <= num_intermediates; ++j) {
+        const double ratio = j * step;
+        
+        double interp_x, interp_y;
+        cartesian_utils::interpolateCartesian(prev_x, prev_y, curr_x, curr_y, 
+                                             ratio, interp_x, interp_y);
+        
+        geometry_msgs::msg::PoseStamped intermediate;
+        intermediate.header = input_path.header;
+        intermediate.pose.position.x = interp_x;
+        intermediate.pose.position.y = interp_y;
+        intermediate.pose.position.z = prev_pose.pose.position.z; // maintain altitude
+        intermediate.pose.orientation = prev_pose.pose.orientation; // maintain orientation
+        
+        interpolated_path.poses.push_back(intermediate);
+      }
+    }
+    
+    interpolated_path.poses.push_back(curr_pose);
+  }
+  
+  return interpolated_path;
+}
+
 BT::NodeStatus ComputeCoveragePathAction::on_success()
 {
   RCLCPP_INFO(
     rclcpp::get_logger("ComputeCoveragePath"), "Planning time: %.2f seconds", 
     result_.result->planning_time.sec + result_.result->planning_time.nanosec/1e9);
 
-  // Create filtered path
-  nav_msgs::msg::Path filtered_path;
-  filtered_path.header = result_.result->nav_path.header;
-  
-  // First pass: Filter poses with y <= 6.0
-  for (const auto& pose : result_.result->nav_path.poses) {
-    if (pose.pose.position.y <= 20.0) {
-      filtered_path.poses.push_back(pose);
-    }
+  // Apply Cartesian interpolation to the path with maximum distance between points
+  // Try to get max_distance from behavior tree, use default (in header file) if not specified
+  if (!getInput("max_distance", max_distance_)) {
+    RCLCPP_INFO(
+      rclcpp::get_logger("ComputeCoveragePath"), 
+      "max_distance not specified in BT, using default: %.2f units", max_distance_);
   }
-
-  // Second pass: Interpolate between distant poses
-  nav_msgs::msg::Path interpolated_path;
-  interpolated_path.header = filtered_path.header;
+  nav_msgs::msg::Path interpolated_path = interpolateCartesianPath(result_.result->nav_path, max_distance_);
   
-  if (!filtered_path.poses.empty()) {
-    interpolated_path.poses.push_back(filtered_path.poses[0]);
-    
-    for (size_t i = 1; i < filtered_path.poses.size(); ++i) {
-      const auto& prev_pose = filtered_path.poses[i-1];
-      const auto& curr_pose = filtered_path.poses[i];
-      
-      const double dx = curr_pose.pose.position.x - prev_pose.pose.position.x;
-      const double dy = curr_pose.pose.position.y - prev_pose.pose.position.y;
-      const double distance = std::hypot(dx, dy);
-
-      double max_distance = 0.20;
-      
-      if (distance > max_distance) {
-        // Calculate number of intermediate points needed
-        const size_t num_intermediates = static_cast<size_t>(std::ceil(distance / max_distance));
-        const double step = 1.0 / (num_intermediates + 1);
-        
-        // Linear interpolation
-        for (size_t j = 1; j <= num_intermediates; ++j) {
-          const double ratio = j * step;
-          geometry_msgs::msg::PoseStamped intermediate;
-          intermediate.header = filtered_path.header;
-          intermediate.pose.position.x = prev_pose.pose.position.x + (dx * ratio);
-          intermediate.pose.position.y = prev_pose.pose.position.y + (dy * ratio);
-          intermediate.pose.orientation = prev_pose.pose.orientation; // Maintain orientation
-          interpolated_path.poses.push_back(intermediate);
-        }
-      }
-      
-      interpolated_path.poses.push_back(curr_pose);
-    }
-  }
-
   RCLCPP_INFO(
     rclcpp::get_logger("ComputeCoveragePath"), 
-    "Processed path: %zu poses after filtering and interpolation (original: %zu)", 
+    "Cartesian interpolation completed: %zu poses after interpolation (original: %zu)", 
     interpolated_path.poses.size(), 
     result_.result->nav_path.poses.size()
   );
 
-  // Set outputs with processed path
+  // Calculate total path length for verification
+  double total_distance = 0.0;
+  for (size_t i = 1; i < interpolated_path.poses.size(); ++i) {
+    const auto& prev_pose = interpolated_path.poses[i-1];
+    const auto& curr_pose = interpolated_path.poses[i];
+    total_distance += cartesian_utils::calculateCartesianDistance(
+      prev_pose.pose.position.x, prev_pose.pose.position.y,
+      curr_pose.pose.position.x, curr_pose.pose.position.y
+    );
+  }
+  
+  RCLCPP_INFO(
+    rclcpp::get_logger("ComputeCoveragePath"), 
+    "Total interpolated path length: %.2f units", total_distance
+  );
+
+  // Set outputs with Cartesian-interpolated path
   setOutput("planning_time", result_.result->planning_time);
-  // setOutput("nav_path", result_.result->nav_path);
-  setOutput("nav_path", interpolated_path);
+  setOutput("nav_path", interpolated_path); // Use Cartesian-interpolated path
   setOutput("coverage_path", result_.result->coverage_path);
   setOutput("error_code_id", ActionResult::NONE);
 
@@ -137,28 +193,44 @@ BT::NodeStatus ComputeCoveragePathAction::on_success()
     RCLCPP_INFO(rclcpp::get_logger("ComputeCoveragePath"), "Path on blackboard has %zu poses", path.poses.size());
   }
 
+  // Enhanced logging for Cartesian coordinates
   if (true) {
     std::ofstream logFile("/home/markilius/nav2_ws/src/coverage_path_log.txt", std::ios::app);
     if (logFile.is_open()) {
         // Set precision to 10 decimal places and use fixed notation
         logFile << std::fixed << std::setprecision(10);
         
-        logFile << "Received path with " << path.poses.size() << " poses:\n";
-        logFile << "[";
-        for (size_t i = 0; i < path.poses.size(); ++i) {
-            const auto& pose = path.poses[i];
-            logFile << i << ":(" << pose.pose.position.x << ", "
-                    << pose.pose.position.y << ")";
-            if (i < path.poses.size() - 1) {
+        // Log timestamp
+        auto now = std::chrono::system_clock::now();
+        auto time_t = std::chrono::system_clock::to_time_t(now);
+        logFile << "=== Cartesian Coverage Path Log - " << std::ctime(&time_t);
+        
+        logFile << "Original path: " << result_.result->nav_path.poses.size() << " poses\n";
+        logFile << std::fixed << std::setprecision(3);
+        logFile << "Interpolated path: " << interpolated_path.poses.size() << " poses" << " with max_distance: " << max_distance_ << "\n";
+        logFile << "Total distance: " << total_distance << " units\n";
+        logFile << "Cartesian Coordinates (X, Y):\n[";
+        logFile << std::fixed << std::setprecision(10);
+        
+        for (size_t i = 0; i < interpolated_path.poses.size(); ++i) {
+            const auto& pose = interpolated_path.poses[i];
+            logFile << i << ":(x=" << pose.pose.position.x << ", y="
+                    << pose.pose.position.y << ", z=" << pose.pose.position.z << ")";
+            if (i < interpolated_path.poses.size() - 1) {
                 logFile << ", ";
             }
+            // Add newline every 5 points for readability
+            if ((i + 1) % 5 == 0 && i < interpolated_path.poses.size() - 1) {
+                logFile << "\n ";
+            }
         }
-        logFile << "]\n";
+        logFile << "]\n\n";
         logFile.close();
     } else {
         RCLCPP_ERROR(rclcpp::get_logger("ComputeCoveragePath"), "Unable to open file for logging!");
     }
-}
+  }
+
   return BT::NodeStatus::SUCCESS;
 }
 

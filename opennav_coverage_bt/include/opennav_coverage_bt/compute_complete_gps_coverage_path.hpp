@@ -103,6 +103,7 @@ public:
         BT::InputPort<double>("max_distance", 3.0, "Maximum distance between poses, if exceeded then interpolate between them"),
       });
   }
+  
 private:
   /**
    * @brief Interpolates a GPS path to ensure maximum distance between consecutive points

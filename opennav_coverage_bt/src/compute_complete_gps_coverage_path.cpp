@@ -210,7 +210,7 @@ BT::NodeStatus ComputeGPSCoveragePathAction::on_success()
     result_.result->planning_time.sec + result_.result->planning_time.nanosec/1e9);
 
   // Apply GPS interpolation to the path with maximum distance [meters] between points
-  // Try to get max_distance from behavior tree, use default if not specified
+  // Try to get max_distance from behavior tree, use default (in header file) if not specified
   if (!getInput("max_distance", max_distance_)) {
     RCLCPP_INFO(
       rclcpp::get_logger("ComputeGPSCoveragePath"), 
