@@ -30,7 +30,7 @@ bt_navigator:
     odom_topic: /odom
     bt_loop_duration: 10
     default_server_timeout: 20
-    default_coverage_bt_xml: "opennav_coverage_bt/behavior_trees/navigate_w_basic_complete_coverage.xml"
+    default_coverage_bt_xml: $(find-pkg-share opennav_coverage_bt)/behavior_trees/navigate_w_basic_complete_coverage.xml
     navigators: ['navigate_complete_coverage']
     navigate_complete_coverage:
       plugin: "opennav_coverage_navigator/CoverageNavigator"
