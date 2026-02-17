@@ -53,6 +53,11 @@ def generate_launch_description():
     gazebo_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([coverage_demo_dir, '/turtlebot3_house.launch.py']))
     
+    robot_localization_cmd = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(coverage_demo_dir, 'coverage_ekf.launch.py'))
+    )
+    
     # world->odom transform, no localization. For visualization & controller transform
     amcl_launch = IncludeLaunchDescription(
             PythonLaunchDescriptionSource([coverage_demo_dir, '/amcl.launch.py']),
@@ -88,6 +93,7 @@ def generate_launch_description():
     ld.add_action(use_sim_time_arg)
     ld.add_action(amcl_config_arg)
     ld.add_action(gazebo_launch)
+    ld.add_action(robot_localization_cmd)
     ld.add_action(amcl_launch)
     ld.add_action(rviz_cmd)
     ld.add_action(bringup_cmd)
