@@ -258,7 +258,7 @@ BT::NodeStatus ComputeGPSCoveragePathAction::on_success()
 
   // Enhanced logging for GPS coordinates
   if (true) {
-    std::ofstream logFile("/home/markilius/nav2_ws/src/gps_coverage_path_log.txt", std::ios::app);
+    std::ofstream logFile("/home/markilius/lawnmower_log/gps_coverage_path_log.txt", std::ios::app);
     if (logFile.is_open()) {
         // Set precision to 10 decimal places and use fixed notation
         logFile << std::fixed << std::setprecision(10);

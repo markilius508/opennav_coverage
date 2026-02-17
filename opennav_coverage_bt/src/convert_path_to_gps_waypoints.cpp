@@ -37,7 +37,7 @@ BT::NodeStatus ConvertPathToGPSWaypoints::tick()
   }
 
   if (!path.poses.empty()) {
-    std::ofstream logFile("/home/markilius/nav2_ws/src/gps_path_to_waypoints.txt", std::ios::app);
+    std::ofstream logFile("/home/markilius/lawnmower_log/gps_path_to_waypoints.txt", std::ios::app);
     if (logFile.is_open()) {
         logFile << std::fixed << std::setprecision(10);
         logFile << "Path2GPPS: Received whole path with " << path.poses.size() << " poses: (Header.frame_id =)" << path.header.frame_id << "\n";

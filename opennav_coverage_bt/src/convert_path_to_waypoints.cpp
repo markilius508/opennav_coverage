@@ -37,7 +37,7 @@ BT::NodeStatus ConvertPathToWaypoints::tick()
   }
 
   if (!path.poses.empty()) {
-    std::ofstream logFile("/home/markilius/nav2_ws/src/path_to_waypoints.txt", std::ios::app);
+    std::ofstream logFile("/home/markilius/lawnmower_log/path_to_waypoints.txt", std::ios::app);
     if (logFile.is_open()) {
         logFile << "Received whole path with " << path.poses.size() << " poses: (Header.frame_id =)" << path.header.frame_id << "\n";
         logFile << "[";
