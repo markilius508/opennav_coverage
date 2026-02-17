@@ -151,14 +151,15 @@ def main():
 
     i = 0
     while not navigator.isTaskComplete():
-        # Do something with the feedback
-        i = i + 1
-        feedback = navigator.getFeedback()
-        if feedback and i % 5 == 0:
-            print('Estimated time of arrival: ' + '{0:.0f}'.format(
-                  Duration.from_msg(feedback.estimated_time_remaining).nanoseconds / 1e9)
-                  + ' seconds.')
-        time.sleep(1)
+        # # Do something with the feedback
+        # i = i + 1
+        # feedback = navigator.getFeedback()
+        # if feedback and i % 5 == 0:
+        #     print('Estimated time of arrival: ' + '{0:.0f}'.format(
+        #           Duration.from_msg(feedback.estimated_time_remaining).nanoseconds / 1e9)
+        #           + ' seconds.')
+        # time.sleep(1)
+        pass
 
     # Do something depending on the return code
     result = navigator.getResult()
